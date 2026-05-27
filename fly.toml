@@ -1,0 +1,49 @@
+# Fly.io конфиг для long-polling Telegram-бота.
+#
+# Особенности:
+#   • Бот не слушает HTTP-порт (long-polling к Telegram), поэтому
+#     [http_service]/checks НЕ нужны — иначе Fly будет считать бота
+#     unhealthy и убивать машину.
+#   • auto_stop_machines = false: иначе Fly останавливает простаивающие
+#     VM, что для polling-бота = смерть.
+#   • min_machines_running = 1: ровно одна машина, без авто-скейла —
+#     long-polling из двух копий ловит дубликаты апдейтов.
+#   • Volume `data` mount-path /app/data для SQLite-файла.
+
+app = "polyakov-booking-demo"
+primary_region = "fra"            # Frankfurt — близко к РФ по latency
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  TZ = "Europe/Moscow"
+  DATABASE_URL = "sqlite+aiosqlite:////app/data/booking.db"
+  LOG_LEVEL = "INFO"
+  LOG_JSON = "true"
+  REMINDER_OFFSET_24H_MIN = "1440"
+  REMINDER_OFFSET_2H_MIN = "120"
+  ROLLING_HOUR_LOCAL = "3"
+  FSM_BACKEND = "memory"
+
+# Один CPU shared, 256 MB RAM — хватает для одного booking-бота.
+# Free tier Fly: до 3 таких VM суммарно.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Volume для SQLite-файла. Создаётся отдельной командой:
+#   fly volume create data --region fra --size 1
+[[mounts]]
+  source = "data"
+  destination = "/app/data"
+
+[deploy]
+  strategy = "immediate"
+
+# Без http_service / без checks — бот не слушает порты.
+# Без auto_stop_machines — long-polling нельзя усыплять.
+[processes]
+  app = "python -m bot.main"

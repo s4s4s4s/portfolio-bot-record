@@ -1,0 +1,25 @@
+slug: aiogram-booking
+kind: booking_bot
+title: Universal client booking bot
+entry_point: bot/main.py
+test_command: pytest tests/ -v --asyncio-mode=auto
+tested_on: 2026-05-07
+description: |
+  Универсальный бот записи клиентов: услуги, мастера, слоты, напоминания,
+  админ-команды. Адаптируется под beauty-салон, клинику, барбершоп,
+  автосервис, репетитора. APScheduler с persistence в SQLite,
+  async SQLAlchemy 2.x, FSM на MemoryStorage / RedisStorage.
+requires:
+  - python>=3.12
+  - aiogram>=3.16,<4.0
+  - SQLAlchemy[asyncio]>=2.0
+  - APScheduler>=3.10
+  - pydantic-settings>=2.6
+  - loguru>=0.7
+tags:
+  - booking
+  - appointment
+  - scheduling
+  - aiogram
+  - sqlalchemy
+  - apscheduler

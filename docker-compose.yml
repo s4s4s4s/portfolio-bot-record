@@ -1,0 +1,17 @@
+services:
+  bot:
+    build: .
+    container_name: booking-bot
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import sqlite3,sys; sqlite3.connect('/app/data/booking.db').execute('SELECT 1'); sys.exit(0)"
+      interval: 30s
+      timeout: 5s
+      retries: 3

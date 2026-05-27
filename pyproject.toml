@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiogram-booking"
+version = "0.1.0"
+description = "Universal client-booking Telegram bot template (aiogram 3.x)"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+readme = "README.md"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC", "RUF", "SIM"]
+ignore = [
+    "E501",    # длина строки уже у line-length
+    "B008",    # FastAPI/aiogram-style Depends/Filter в default-args
+    "RUF001",  # cyrillic chars в строках (русский язык — это норма)
+    "RUF002",  # cyrillic chars в docstring
+    "RUF003",  # cyrillic chars в комментариях
+    "SIM105",  # contextlib.suppress vs try/except pass — стиль на усмотрение
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["bot", "db", "services", "core", "seeders"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = false
+plugins = ["pydantic.mypy"]
+exclude = ["^migrations/versions/", "^tests/"]
+
+[[tool.mypy.overrides]]
+module = ["apscheduler.*", "freezegun"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning:aiogram.*",
+    "ignore::DeprecationWarning:apscheduler.*",
+]

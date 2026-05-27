@@ -1,0 +1,45 @@
+flowchart LR
+    subgraph TG["Telegram Bot API"]
+        UPD[Updates / Long-Polling]
+    end
+
+    subgraph BOT["aiogram Dispatcher"]
+        ROUTE[Routers] --> START[start.py]
+        ROUTE --> BOOK[booking.py FSM]
+        ROUTE --> MY[my.py]
+        ROUTE --> ADM[admin.py]
+        MW[DBSessionMiddleware] --> ROUTE
+    end
+
+    subgraph DB["SQLite / Postgres"]
+        S1[(services)]
+        S2[(masters)]
+        S3[(slots)]
+        S4[(bookings)]
+        S5[(clients)]
+        S6[(admin_logs)]
+        S7[(apscheduler_jobs)]
+    end
+
+    subgraph SCHED["APScheduler · AsyncIOScheduler"]
+        J1[reminder_24h every 15m]
+        J2[reminder_2h every 5m]
+        J3[rolling_slots cron 03:00]
+        J4[cleanup_old_slots cron Mon 04:00]
+    end
+
+    UPD --> MW
+    BOOK --> S3
+    BOOK --> S4
+    BOOK --> S5
+    MY --> S4
+    ADM --> S2
+    ADM --> S3
+    ADM --> S5
+    ADM --> S6
+    SCHED --> S4
+    SCHED --> S3
+    SCHED -.persistence.-> S7
+    J1 -- send reminder --> UPD
+    J2 -- send reminder --> UPD
+    ADM -- broadcast --> UPD
