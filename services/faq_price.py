@@ -1,19 +1,5 @@
 """Вопросы о цене — ответ из каталога через LLM."""
-from __future__ import annotations
-
-import re
-
-from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from db.models import Service
-from db.repositories import ServiceRepo
-from services import human_reply
-from services.nlu import _best_match
-from services.service_aliases import normalize_service_hint
-from services.service_grammar import service_speech_label
-
-_PRICE_ASK_RE = re.compile(
+from __future__ import annotationsimport refrom aiogram.fsm.context import FSMContextfrom sqlalchemy.ext.asyncio import AsyncSessionfrom db.models import Servicefrom db.repositories import ServiceRepofrom services import human_replyfrom services.nlu import _best_matchfrom services.service_aliases import normalize_service_hintfrom services.service_grammar import service_speech_label_PRICE_ASK_RE = re.compile(
     r"(сколько\s+(?:у\s+вас\s+)?(?:стоит|будет|выйдет)|"
     r"стоимость|"
     r"\bцен[аыуе]\b|"

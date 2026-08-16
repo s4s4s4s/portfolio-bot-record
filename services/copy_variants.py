@@ -4,12 +4,8 @@
 
 from __future__ import annotations
 
-
-
 from services import human_reply
-
-
-
+from services.llm_client import LLMClient
 
 
 def format_services_catalog(labels: list[str]) -> str:
@@ -250,7 +246,7 @@ def master_dative(name: str) -> str:
 
 
 
-async def date_step_nudge(*, llm=None) -> str:
+async def date_step_nudge(*, llm: LLMClient | None = None) -> str:
 
 
 
@@ -266,7 +262,7 @@ async def date_step_nudge(*, llm=None) -> str:
 
 
 
-async def slot_step_nudge(*, llm=None) -> str:
+async def slot_step_nudge(*, llm: LLMClient | None = None) -> str:
 
 
 

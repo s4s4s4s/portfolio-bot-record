@@ -8,9 +8,8 @@ Ollama — локальный HTTP endpoint.
 from __future__ import annotations
 
 import asyncio
-import json
 import os
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, cast, runtime_checkable
 
 from core.config import get_settings
 from core.logging import get_logger
@@ -20,7 +19,7 @@ log = get_logger()
 DEFAULT_GROQ_MODEL = "qwen/qwen3-32b"
 DEFAULT_OLLAMA_MODEL = "qwen2.5:14b"
 
-_OLLAMA_PROC: asyncio.subprocess.Process | None = None  # noqa: WPS407
+_OLLAMA_PROC: asyncio.subprocess.Process | None = None
 
 
 @runtime_checkable
@@ -44,8 +43,8 @@ class GroqClient(LLMClient):
         *,
         temperature: float,
         max_tokens: int = 512,
-    ) -> dict:
-        body: dict = {
+    ) -> dict[str, Any]:
+        body: dict[str, Any] = {
             "model": model,
             "messages": [
                 {"role": "system", "content": system},
@@ -72,7 +71,7 @@ class GroqClient(LLMClient):
                 )
                 r.raise_for_status()
                 data = r.json()
-                return data["choices"][0]["message"]["content"]
+                return cast(str, data["choices"][0]["message"]["content"])
         except Exception:
             log.exception("Groq chat failed, will try Ollama fallback")
             return await _ollama_fallback(system, user, temperature=temperature)
@@ -105,7 +104,7 @@ class OllamaClient(LLMClient):
                 )
                 r.raise_for_status()
                 data = r.json()
-                return data["message"]["content"]
+                return cast(str, data["message"]["content"])
         except Exception:
             log.exception("Ollama fallback also failed")
             return ""

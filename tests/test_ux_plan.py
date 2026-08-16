@@ -2,40 +2,21 @@
 
 from __future__ import annotations
 
-
-
 import re
-
-
 
 import pytest
 
-
-
 from services.booking_format import fmt_confirm_body
-
 from services.complaint_detect import looks_like_gibberish
-
 from services.persona import (
-
     booking_created,
-
     did_not_understand_message,
-
     phone_after_name,
-
     phone_invalid_error,
-
     unsupported_service_message,
-
 )
-
 from services.phone import normalize_phone
-
 from services.slot_matching import filter_slots_exact, parse_time_hint
-
-
-
 
 
 def test_normalize_phone_ten_digits() -> None:
@@ -166,8 +147,6 @@ def test_filter_slots_exact() -> None:
 
     from datetime import datetime
 
-
-
     from db.models import Slot
 
 
@@ -191,13 +170,9 @@ def test_filter_slots_exact() -> None:
 async def test_persona_scenes_use_llm_mock() -> None:
 
     from services.persona import (
-
         booking_cancelled,
-
         name_prompt,
-
         step_cancelled,
-
     )
 
 

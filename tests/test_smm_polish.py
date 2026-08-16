@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-
-
 from services.human_reply import _polish_smm
-
-
-
 
 
 def test_ty_replaced() -> None:

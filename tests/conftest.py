@@ -22,11 +22,17 @@ def create_message(text: str, *, user_id: int = 42, username: str = "test") -> M
 
 @pytest.fixture(scope="session", autouse=True)
 def _ensure_env() -> None:
-    """Стабильные значения ENV для тестов."""
-    os.environ.setdefault("BOT_TOKEN", "test:token")
-    os.environ.setdefault("ADMIN_IDS", "111,222")
-    os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
-    os.environ.setdefault("LOG_LEVEL", "WARNING")
+    """Стабильные значения ENV для тестов.
+
+    Пишем напрямую (не setdefault): CI задаёт свои BOT_TOKEN/ADMIN_IDS на
+    уровне job (см. .github/workflows/ci.yml), и setdefault ничего не
+    менял бы поверх них — тесты, ожидающие конкретные значения (см.
+    test_settings_load_with_env), тогда ловили бы чужие.
+    """
+    os.environ["BOT_TOKEN"] = "test:token"
+    os.environ["ADMIN_IDS"] = "111,222"
+    os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+    os.environ["LOG_LEVEL"] = "WARNING"
 
 
 @pytest.fixture(autouse=True)

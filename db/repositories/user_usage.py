@@ -1,8 +1,6 @@
 """Repository для user_usage (лимиты и блокировки)."""
 from __future__ import annotations
 
-from datetime import datetime
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

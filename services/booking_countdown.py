@@ -36,9 +36,7 @@ def looks_like_time_until_booking(text: str) -> bool:
         return True
     if "сколько времени" in low and any(w in low for w in ("остал", "до запис", "до визит", "до неё", "до нее")):
         return True
-    if "я спросил" in low and "остал" in low:
-        return True
-    return False
+    return bool("я спросил" in low and "остал" in low)
 
 
 def _plural(n: int, one: str, few: str, many: str) -> str:
@@ -97,7 +95,7 @@ async def answer_time_until_booking(message: Message, session: AsyncSession) -> 
         b for b in bookings
         if b.slot is not None and b.slot.start_at >= now
     ]
-    upcoming.sort(key=lambda b: b.slot.start_at)  # type: ignore[union-attr]
+    upcoming.sort(key=lambda b: b.slot.start_at)
 
     if not upcoming:
         await message.answer(

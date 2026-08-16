@@ -9,8 +9,12 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from loguru import logger
+
+if TYPE_CHECKING:
+    from loguru import Logger
 
 _CONFIGURED = False
 
@@ -82,7 +86,7 @@ def configure_logging(
     _CONFIGURED = True
 
 
-def get_logger() -> logger.__class__:  # type: ignore[name-defined]
+def get_logger() -> Logger:
     """Точка получения логгера. Если не настроен — настраивается с дефолтами."""
     if not _CONFIGURED:
         configure_logging()

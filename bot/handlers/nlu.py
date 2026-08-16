@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import re
 from datetime import date as _date
-from datetime import datetime as _datetime
 from pathlib import Path
 from tempfile import gettempdir
 
@@ -13,6 +12,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.handlers.booking_helpers import (
+    handle_contact_step_text,
+    resolve_name_input,
+    resolve_phone_and_confirm,
+    try_returning_client_confirm,
+)
 from bot.keyboards.client import (
     dates_kb,
     main_menu,
@@ -20,72 +25,12 @@ from bot.keyboards.client import (
     services_kb,
     slots_kb,
 )
-from bot.handlers.booking_helpers import (
-    handle_contact_step_text,
-    resolve_name_input,
-    resolve_phone_and_confirm,
-    try_returning_client_confirm,
-)
 from bot.states import BookingStates, CancelStates, FeedbackStates, RescheduleStates
 from core.config import get_settings
 from core.logging import get_logger
-from db.models import Slot
+from db.models import Master, Service, Slot
 from db.repositories import BookingRepo, ClientRepo, MasterRepo, ServiceRepo, SlotRepo
-from services.complaint_detect import (
-    looks_like_cancel,
-    looks_like_change_master,
-    looks_like_change_mind,
-    looks_like_complaint,
-    looks_like_gibberish,
-    looks_like_off_topic,
-    looks_like_phone_update,
-)
-from services.feedback_store import save_complaint_feedback
-from services.llm_client import LLMClient, get_llm_client
-from services.nlu import (
-    _best_match,
-    _resolve_date,
-    classify_intent,
-    generate_fsm_message,
-    generate_redirect_reply,
-)
-from services.human_reply import say
-from services.persona import (
-    booking_short_line,
-    choose_date_prompt,
-    choose_master_prompt,
-    choose_slot_prompt,
-    complaint_recovery_message,
-    did_not_understand_message,
-    faq_answer,
-    feedback_thanks,
-    help_text,
-    invalid_master_for_service,
-    master_card_line,
-    masters_list_intro,
-    multi_booking_continue,
-    multi_booking_plan,
-    name_length_error,
-    name_prompt,
-    off_topic_message,
-    free_chat_message,
-    no_slots_prompt,
-    phone_after_name,
-    reschedule_done,
-    date_corrected_ack,
-    later_slots_unavailable,
-    returning_booking_ack,
-    service_choice_prompt,
-    waitlist_not_available_yet,
-    step_cancelled,
-    unsupported_service_message,
-    welcome_with_catalog,
-    alternative_slot_prompt,
-)
-from services.booking_countdown import (
-    answer_time_until_booking,
-    looks_like_time_until_booking,
-)
+from services.booking_cancel import looks_like_cancel_intent, looks_like_my_bookings
 from services.booking_fsm_text import (
     looks_like_date_correction,
     looks_like_later_time_request,
@@ -99,30 +44,76 @@ from services.booking_hints import (
     extract_date_time,
     merge_hints,
 )
-from services.booking_cancel import looks_like_cancel_intent, looks_like_my_bookings
+from services.complaint_detect import (
+    looks_like_cancel,
+    looks_like_change_master,
+    looks_like_change_mind,
+    looks_like_complaint,
+    looks_like_gibberish,
+    looks_like_off_topic,
+    looks_like_phone_update,
+)
+from services.copy_variants import date_step_nudge, slot_step_nudge
 from services.faq_price import (
     looks_like_price_followup,
     looks_like_price_question,
     try_answer_price,
 )
-from services.period_offer import extract_time_of_day
-from services.reschedule_detect import looks_like_reschedule
+from services.feedback_store import save_complaint_feedback
+from services.human_reply import say
+from services.llm_client import LLMClient, get_llm_client
+from services.master_matching import find_master_in_text, find_master_name
 from services.multi_booking import (
     BookingSegment,
     extract_booking_segments,
     looks_like_booking_request,
 )
+from services.nlu import (
+    _best_match,
+    _resolve_date,
+    classify_intent,
+    generate_fsm_message,
+    generate_redirect_reply,
+)
+from services.period_offer import extract_time_of_day
+from services.persona import (
+    alternative_slot_prompt,
+    booking_short_line,
+    choose_date_prompt,
+    choose_master_prompt,
+    choose_slot_prompt,
+    complaint_recovery_message,
+    date_corrected_ack,
+    did_not_understand_message,
+    faq_answer,
+    feedback_thanks,
+    free_chat_message,
+    help_text,
+    invalid_master_for_service,
+    later_slots_unavailable,
+    master_card_line,
+    masters_list_intro,
+    multi_booking_continue,
+    multi_booking_plan,
+    name_length_error,
+    off_topic_message,
+    phone_after_name,
+    reschedule_done,
+    returning_booking_ack,
+    service_choice_prompt,
+    unsupported_service_message,
+    waitlist_not_available_yet,
+    welcome_with_catalog,
+)
+from services.reschedule_detect import looks_like_reschedule
+from services.salon_time import is_past_date
 from services.service_aliases import detect_unsupported_service, normalize_service_hint
-from services.master_matching import find_master_in_text, find_master_name
 from services.service_grammar import no_masters_message_async, service_speech_label
 from services.slot_matching import (
     filter_slots_exact,
     nearest_slot_to_time,
     parse_time_hint,
 )
-from services.copy_variants import date_step_nudge, slot_step_nudge
-from services.salon_time import is_past_date, salon_today
-from services.text_guard import sanitize_bot_text
 from services.voice_recognition import download_voice_file, transcribe_file
 
 log = get_logger()
@@ -157,8 +148,8 @@ async def _re_prompt_fsm_step(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    services: list,
-    masters: list,
+    services: list[Service],
+    masters: list[Master],
 ) -> None:
     """Не сбрасывать FSM — повторить текущий шаг с кнопками."""
     current = await state.get_state()
@@ -219,8 +210,8 @@ async def _handle_off_topic(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    services: list,
-    masters: list,
+    services: list[Service],
+    masters: list[Master],
     *,
     in_fsm: bool,
 ) -> None:
@@ -243,8 +234,8 @@ async def _handle_free_chat(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    services: list,
-    masters: list,
+    services: list[Service],
+    masters: list[Master],
     *,
     in_fsm: bool,
 ) -> None:
@@ -564,13 +555,12 @@ async def _handle_user_text(
         return
 
     data = await state.get_data()
-    if data.get("refused_booking"):
-        if intent == "book":
-            await message.answer(
-                await say("booking_refused_ack", {}),
-                reply_markup=main_menu(),
-            )
-            return
+    if data.get("refused_booking") and intent == "book":
+        await message.answer(
+            await say("booking_refused_ack", {}),
+            reply_markup=main_menu(),
+        )
+        return
 
     if intent == "book":
         if current_state in (BookingStates.choosing_date, BookingStates.choosing_slot):
@@ -682,8 +672,8 @@ async def _intent_change_master(
     text: str,
     message: Message,
     session: AsyncSession,
-    masters: list,
-    services: list,
+    masters: list[Master],
+    services: list[Service],
 ) -> bool:
     user = message.from_user
     if user is None:
@@ -752,8 +742,8 @@ async def _handle_active_booking_text(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    services: list,
-    masters: list,
+    services: list[Service],
+    masters: list[Master],
     llm: LLMClient,
 ) -> bool:
     """Текст на шаге дата/время — не сбрасывать FSM и не слать «выберите услугу»."""
@@ -840,8 +830,8 @@ async def _intent_multi_book(
     state: FSMContext,
     session: AsyncSession,
     segments: list[BookingSegment],
-    services: list,
-    masters: list,
+    services: list[Service],
+    masters: list[Master],
     llm: LLMClient,
 ) -> None:
     plan_lines = [(s.service_name, s.date_label) for s in segments]
@@ -890,8 +880,8 @@ async def _intent_book(
     state: FSMContext,
     session: AsyncSession,
     entities: dict[str, str],
-    services: list,
-    masters: list,
+    services: list[Service],
+    masters: list[Master],
     llm: LLMClient,
 ) -> None:
     current_state = await state.get_state()
@@ -1133,8 +1123,8 @@ async def _show_availability(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    service,
-    master,
+    service: Service,
+    master: Master,
     date_hint: str,
     time_hint: str,
     llm: LLMClient,
@@ -1259,8 +1249,8 @@ async def _intent_masters(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    masters: list,
-    services: list,
+    masters: list[Master],
+    services: list[Service],
 ) -> None:
     if not masters:
         await message.answer(

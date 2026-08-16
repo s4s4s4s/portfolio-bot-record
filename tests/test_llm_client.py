@@ -5,7 +5,12 @@ from typing import Protocol, runtime_checkable
 
 import pytest
 
-from services.llm_client import GroqClient, LLMClient, OllamaClient, get_llm_client, reset_llm_client
+from services.llm_client import (
+    GroqClient,
+    OllamaClient,
+    get_llm_client,
+    reset_llm_client,
+)
 
 
 @runtime_checkable

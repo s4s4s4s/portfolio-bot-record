@@ -2,65 +2,37 @@
 
 from __future__ import annotations
 
-
-
 from aiogram import Bot
-
 from aiogram.fsm.context import FSMContext
-
-from aiogram.types import CallbackQuery, Message
-
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message, User
 from sqlalchemy.ext.asyncio import AsyncSession
-
-
 
 from bot.keyboards.client import confirm_kb, dates_kb, main_menu, masters_kb
 from bot.states import BookingStates
-
 from db.repositories import ClientRepo, MasterRepo, ServiceRepo, SlotRepo
-
-from services.complaint_detect import (
-
-    looks_like_cancel,
-
-    looks_like_gibberish,
-
-    looks_like_same_name,
-
-)
-
-from services.human_reply import say
-
-from services.persona import (
-
-    confirm_intro,
-
-    choose_date_prompt,
-
-    choose_master_prompt,
-
-    faq_answer,
-
-    fmt_confirm_body,
-
-    name_prompt,
-
-    phone_after_name,
-
-    phone_invalid_error,
-
-    phone_not_now_hint,
-
-    step_cancelled,
-
-)
-
-from services.phone import normalize_phone
-
 from services.booking_format import fmt_when_display
 from services.booking_hints import merge_hints
+from services.complaint_detect import (
+    looks_like_cancel,
+    looks_like_gibberish,
+    looks_like_same_name,
+)
+from services.human_reply import say
 from services.master_matching import find_master_in_text
 from services.period_offer import try_period_slot_after_master
+from services.persona import (
+    choose_date_prompt,
+    choose_master_prompt,
+    confirm_intro,
+    faq_answer,
+    fmt_confirm_body,
+    name_prompt,
+    phone_after_name,
+    phone_invalid_error,
+    phone_not_now_hint,
+    step_cancelled,
+)
+from services.phone import normalize_phone
 from services.salon_time import is_past_slot
 from services.service_grammar import service_speech_label
 
@@ -114,7 +86,7 @@ async def _send_booking_reply(
 
     text: str,
 
-    reply_markup=None,
+    reply_markup: InlineKeyboardMarkup | None = None,
 
     message: Message | None = None,
 
@@ -278,6 +250,7 @@ async def try_returning_client_confirm(
 
 ) -> bool:
 
+    user: User | None
     if isinstance(event, CallbackQuery):
 
         user = event.from_user
@@ -298,7 +271,7 @@ async def try_returning_client_confirm(
 
         chat_id = event.chat.id
 
-    if user is None or chat_id is None:
+    if user is None or chat_id is None or bot is None:
 
         return False
 
@@ -456,6 +429,10 @@ async def resolve_phone_and_confirm(
 
     full_name = str(data.get("full_name", ""))
 
+    if message.bot is None:
+
+        return False
+
     return await advance_to_confirm(
 
         state,
@@ -513,6 +490,8 @@ async def refresh_confirm_card(
     if raw_slot is None or not full_name or not phone:
         await state.clear()
         await message.answer(await say("booking_error", {}), reply_markup=main_menu())
+        return False
+    if message.bot is None:
         return False
     return await advance_to_confirm(
         state,

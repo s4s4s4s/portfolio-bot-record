@@ -4,12 +4,13 @@ from __future__ import annotations
 import pytest
 
 from services.faq_price import (
+    _resolve_service,
     format_price_reply,
     looks_like_price_followup,
     looks_like_price_question,
-    _resolve_service,
 )
 from services.human_reply import _SCENE_EXAMPLES, _fill_example
+
 
 def test_price_question_detect() -> None:
     assert looks_like_price_question("Сколько у вас стоит стрижка?")

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 _FEEDBACK_PATH = Path(__file__).resolve().parents[1] / "data" / "feedback.jsonl"
@@ -13,7 +13,7 @@ def save_complaint_feedback(*, tg_user_id: int, text: str) -> None:
     row = {
         "tg_user_id": tg_user_id,
         "text": text.strip()[:2000],
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
     with _FEEDBACK_PATH.open("a", encoding="utf-8") as f:
         f.write(json.dumps(row, ensure_ascii=False) + "\n")

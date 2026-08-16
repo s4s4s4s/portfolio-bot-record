@@ -35,9 +35,7 @@ def looks_like_later_time_request(text: str) -> bool:
     low = text.lower()
     if any(p in low for p in ("позже", "попозже", "после ", "побольше", "подольше")):
         return True
-    if "нельзя" in low and re.search(r"\d{1,2}\s*[:.]?\s*\d{0,2}", low):
-        return True
-    return False
+    return bool("нельзя" in low and re.search(r"\d{1,2}\s*[:.]?\s*\d{0,2}", low))
 
 
 def looks_like_waitlist_request(text: str) -> bool:

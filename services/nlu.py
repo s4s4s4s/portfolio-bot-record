@@ -2,29 +2,15 @@
 
 from __future__ import annotations
 
-
-
 import json
-
 from dataclasses import dataclass
-
 from datetime import date, datetime
-
 from typing import Any
 
-
-
 from core.logging import get_logger
-
 from services import human_reply
-
 from services.llm_client import LLMClient
-
 from services.salon_time import salon_today
-
-from services.text_guard import sanitize_bot_text
-
-
 
 log = get_logger()
 
@@ -142,13 +128,21 @@ async def classify_intent(
 
     try:
 
-        return json.loads(cleaned)
+        parsed = json.loads(cleaned)
 
     except json.JSONDecodeError:
 
         log.warning("NLU classify JSON parsing failed, raw=%r", raw)
 
         return {"intent": "other", "entities": {}}
+
+    if not isinstance(parsed, dict):
+
+        log.warning("NLU classify returned non-object JSON, raw=%r", raw)
+
+        return {"intent": "other", "entities": {}}
+
+    return parsed
 
 
 

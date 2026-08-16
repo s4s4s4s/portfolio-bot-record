@@ -1,7 +1,7 @@
 """Фильтрация слотов по времени и поиск ближайшего окна."""
 from __future__ import annotations
 
-from datetime import datetime, time
+from datetime import date, datetime, time
 
 from db.models import Slot
 
@@ -34,7 +34,7 @@ def filter_slots_by_hour(slots: list[Slot], time_hint: str) -> list[Slot]:
 
 def nearest_slot_to_time(
     slots: list[Slot],
-    target_date,
+    target_date: date,
     time_hint: str,
 ) -> tuple[Slot | None, int]:
     parsed = parse_time_hint(time_hint)

@@ -13,6 +13,17 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.handlers.booking_helpers import (
+    begin_confirm_name_edit,
+    begin_confirm_phone_edit,
+    continue_after_master_pick,
+    handle_contact_step_text,
+    refresh_confirm_card,
+    resolve_name_input,
+    resolve_phone_and_confirm,
+    try_returning_client_confirm,
+)
+from bot.handlers.callback_utils import clear_callback_keyboard, send_via_callback
 from bot.keyboards.client import (
     CB_BACK,
     CB_CANCEL,
@@ -23,7 +34,6 @@ from bot.keyboards.client import (
     CB_PICK_MASTER,
     CB_PICK_SERVICE,
     CB_PICK_SLOT,
-    confirm_kb,
     dates_kb,
     main_menu,
     masters_kb,
@@ -36,19 +46,12 @@ from db.repositories import (
     ServiceRepo,
     SlotRepo,
 )
-from bot.handlers.booking_helpers import (
-    begin_confirm_name_edit,
-    begin_confirm_phone_edit,
-    continue_after_master_pick,
-    handle_contact_step_text,
-    refresh_confirm_card,
-    resolve_name_input,
-    resolve_phone_and_confirm,
-    try_returning_client_confirm,
+from services.booking_confirm import (
+    ConfirmFinalizeResult,
+    finalize_booking_confirm,
 )
-from bot.handlers.callback_utils import clear_callback_keyboard, send_via_callback
-from services.human_reply import say
 from services.copy_variants import date_step_nudge
+from services.human_reply import say
 from services.persona import (
     booking_created,
     choose_date_prompt,
@@ -57,8 +60,6 @@ from services.persona import (
     name_length_error,
     step_cancelled,
 )
-from services.booking_confirm import finalize_booking_confirm, looks_like_confirm_no, looks_like_confirm_yes
-from services.complaint_detect import looks_like_cancel
 from services.salon_time import is_past_date, is_past_slot
 from services.service_grammar import service_accusative, service_speech_label
 
@@ -359,8 +360,6 @@ async def cb_pick_slot(
         return
 
     await state.set_state(BookingStates.entering_name)
-    from services.human_reply import say
-
     prompt = await say("slot_time_ack", {"time": time_label})
     if isinstance(call.message, Message):
         try:
@@ -411,37 +410,11 @@ async def msg_enter_phone(
 # ── confirm → done ────────────────────────────────────────────────────
 
 
-async def _apply_confirm_result_message(
-    message: Message,
-    state: FSMContext,
-    session: AsyncSession,
-    result,
-) -> None:
-    if result.outcome == "slot_past":
-        await message.answer(
-            await say("slot_past", {}),
-            reply_markup=main_menu(),
-        )
-        return
-    if result.outcome == "slot_taken":
-        await message.answer(
-            await say("slot_just_taken", {}),
-            reply_markup=main_menu(),
-        )
-        return
-    await message.answer(
-        f"✅ {await booking_created(result.when_str, result.master_name)}", reply_markup=main_menu())
-    if result.pending_bookings:
-        from bot.handlers.nlu import start_pending_booking_if_any
-
-        await start_pending_booking_if_any(message, state, session, result.pending_bookings)
-
-
 async def _apply_confirm_result_callback(
     call: CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
-    result,
+    result: ConfirmFinalizeResult,
 ) -> None:
     if result.outcome == "slot_past":
         await call.answer(await say("slot_past", {}), show_alert=True)

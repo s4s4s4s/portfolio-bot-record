@@ -7,14 +7,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.keyboards.client import dates_kb, masters_kb, slots_kb
+from bot.keyboards.client import masters_kb, slots_kb
 from bot.states import BookingStates
-from db.models import Master
+from db.models import Master, Service
 from db.repositories import MasterRepo, SlotRepo
 from services import human_reply
 from services.booking_hints import format_date_user_label
 from services.copy_variants import master_genitive
-from services.llm_client import LLMClient
+from services.llm_client import LLMClient, get_llm_client
 from services.period_offer import master_informal_at
 from services.persona import booking_short_line, choose_slot_prompt
 
@@ -117,7 +117,7 @@ async def try_start_date_master_shortcut(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    service,
+    service: Service,
     target: date,
 ) -> bool:
     """Если клиент назвал день — показываем только мастеров с окнами в этот день."""
@@ -144,7 +144,7 @@ async def try_start_date_master_shortcut(
 
         await message.answer(booking_short_line(service.name, service.duration_min, price))
         await _show_availability(
-            message, state, session, service, master, target.isoformat(), "", None,
+            message, state, session, service, master, target.isoformat(), "", get_llm_client(),
         )
         return True
 
@@ -161,7 +161,7 @@ async def try_alternate_masters_for_date(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    service,
+    service: Service,
     master: Master,
     target: date,
 ) -> bool:

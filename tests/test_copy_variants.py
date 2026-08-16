@@ -2,24 +2,13 @@
 
 from __future__ import annotations
 
-
-
 import pytest
 
-
-
 from services.copy_variants import (
-
     date_step_nudge,
-
     master_genitive,
-
     master_is_feminine,
-
 )
-
-
-
 
 
 def test_master_genitive_anna() -> None:

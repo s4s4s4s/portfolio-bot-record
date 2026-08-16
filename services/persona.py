@@ -2,21 +2,12 @@
 
 from __future__ import annotations
 
-
-
 import re
 
-
-
 from core.config import get_settings
-
-from services.booking_format import fmt_booking_card, fmt_booking_summary, fmt_confirm_body
-
 from services import human_reply
-
+from services.booking_format import fmt_booking_card, fmt_booking_summary, fmt_confirm_body
 from services.llm_client import LLMClient
-
-
 
 _FAQ_ASK_PATTERNS = re.compile(
 
@@ -44,99 +35,53 @@ _PET_FAQ_RE = re.compile(
 
 __all__ = [
 
-    "booking_cancelled",
-
-    "booking_created",
-
-    "booking_ready_intro",
-
-    "booking_short_line",
-
-    "choose_date_prompt",
-
-    "choose_master_prompt",
-
-    "choose_slot_prompt",
-
-    "complaint_recovery_message",
-
-    "confirm_intro",
-
-    "did_not_understand_message",
-
-    "faq_answer",
-
-    "feedback_thanks",
-
-    "fmt_booking_card",
-
-    "fmt_booking_summary",
-
-    "fmt_confirm_body",
-
-    "greeting_message",
-
-    "help_text",
-
-    "invalid_master_for_service",
-
-    "looks_like_faq_request",
-
-    "master_card_line",
-
-    "masters_list_intro",
-
-    "name_length_error",
-
-    "name_prompt",
-
-    "no_slots_prompt",
-
-    "phone_after_name",
-
-    "phone_invalid_error",
-
-    "phone_not_now_hint",
-
-    "redirect_message",
-
-    "reschedule_done",
-
-    "returning_booking_ack",
-
-    "service_choice_prompt",
-
-    "step_cancelled",
-
-    "unsupported_service_message",
-
-    "welcome_with_catalog",
-
     "alternative_slot_prompt",
-
     "availability_intro",
-
-    "cancel_all_confirm_prompt",
-
-    "cancel_all_done",
-
-    "cancel_booking_not_found_hint",
-
-    "cancel_which_booking_prompt",
-
+    "booking_cancelled",
     "booking_cancelled_detail",
-
-    "date_corrected_ack",
-
-    "later_slots_unavailable",
-
-    "waitlist_not_available_yet",
-
-    "multi_booking_plan",
-
-    "multi_booking_continue",
-
+    "booking_created",
+    "booking_ready_intro",
+    "booking_short_line",
+    "cancel_all_confirm_prompt",
+    "cancel_all_done",
     "cancel_booking_button_label",
+    "cancel_booking_not_found_hint",
+    "cancel_which_booking_prompt",
+    "choose_date_prompt",
+    "choose_master_prompt",
+    "choose_slot_prompt",
+    "complaint_recovery_message",
+    "confirm_intro",
+    "date_corrected_ack",
+    "did_not_understand_message",
+    "faq_answer",
+    "feedback_thanks",
+    "fmt_booking_card",
+    "fmt_booking_summary",
+    "fmt_confirm_body",
+    "greeting_message",
+    "help_text",
+    "invalid_master_for_service",
+    "later_slots_unavailable",
+    "looks_like_faq_request",
+    "master_card_line",
+    "masters_list_intro",
+    "multi_booking_continue",
+    "multi_booking_plan",
+    "name_length_error",
+    "name_prompt",
+    "no_slots_prompt",
+    "phone_after_name",
+    "phone_invalid_error",
+    "phone_not_now_hint",
+    "redirect_message",
+    "reschedule_done",
+    "returning_booking_ack",
+    "service_choice_prompt",
+    "step_cancelled",
+    "unsupported_service_message",
+    "waitlist_not_available_yet",
+    "welcome_with_catalog",
 
 ]
 

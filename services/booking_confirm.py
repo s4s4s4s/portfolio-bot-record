@@ -8,10 +8,11 @@ from typing import Literal
 from aiogram.fsm.context import FSMContext
 from aiogram.types import User
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.repositories import BookingRepo, ClientRepo, MasterRepo, SlotRepo
-from services.complaint_detect import looks_like_cancel
 from services.booking_format import fmt_when_display
+from services.complaint_detect import looks_like_cancel
 from services.salon_time import is_past_slot
 
 ConfirmOutcome = Literal["success", "slot_past", "slot_taken"]
@@ -82,7 +83,7 @@ class ConfirmFinalizeResult:
     outcome: ConfirmOutcome
     when_str: str = ""
     master_name: str = ""
-    pending_bookings: list = field(default_factory=list)
+    pending_bookings: list[dict[str, str]] = field(default_factory=list)
 
 
 def detect_confirm_contact_edit(text: str) -> tuple[ContactEditKind, str | None]:
@@ -153,9 +154,7 @@ def looks_like_confirm_yes(text: str) -> bool:
         return True
     if "верно" in t and len(t) <= 40:
         return True
-    if t.startswith("подтверж"):
-        return True
-    return False
+    return bool(t.startswith("подтверж"))
 
 
 def looks_like_confirm_no(text: str) -> bool:
@@ -167,9 +166,7 @@ def looks_like_confirm_no(text: str) -> bool:
         return True
     if t in {"нет", "не", "неа", "не нужно", "не хочу", "не буду", "не записывай"}:
         return True
-    if t.startswith("нет ") or t.startswith("нет,"):
-        return True
-    return False
+    return bool(t.startswith("нет ") or t.startswith("нет,"))
 
 
 async def finalize_booking_confirm(

@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
+from services.service_grammar import service_speech_label
+
 _WEEKDAYS = ("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
 
 
@@ -18,9 +20,6 @@ def time_from_when_label(when_label: str) -> str:
         if re.fullmatch(r"\d{1,2}:\d{2}", part):
             return part
     return ""
-
-
-from services.service_grammar import service_speech_label
 
 
 def _speech_service(name: str) -> str:

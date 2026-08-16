@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 from datetime import date, timedelta
+from typing import Any
 
 from aiogram.fsm.context import FSMContext
 
@@ -107,9 +108,7 @@ def extract_date_time(text: str) -> tuple[str, str]:
             hour = int(m.group(1))
             minute = int(m.group(2) or 0)
             span = low[m.start(): m.end() + 8]
-            if "вечера" in span and hour < 12:
-                hour += 12
-            elif "дня" in span and 1 <= hour <= 6:
+            if ("вечера" in span and hour < 12) or ("дня" in span and 1 <= hour <= 6):
                 hour += 12
             time_hint = f"{hour:02d}:{minute:02d}"
     elif re.search(r"(?:^|\s)(?:в|к)\s+\d{1,2}", low):
@@ -118,8 +117,8 @@ def extract_date_time(text: str) -> tuple[str, str]:
             low,
         )
         if m:
-            minute = m.group(2) or "00"
-            time_hint = f"{int(m.group(1)):02d}:{minute}"
+            minute = int(m.group(2) or 0)
+            time_hint = f"{int(m.group(1)):02d}:{minute:02d}"
 
     if not time_hint:
         word_times = [
@@ -154,7 +153,7 @@ def extract_date_time(text: str) -> tuple[str, str]:
 
 
 def merge_hints(
-    data: dict,
+    data: dict[str, Any],
     date_hint: str = "",
     time_hint: str = "",
 ) -> tuple[str, str]:
@@ -171,7 +170,7 @@ async def apply_hints(state: FSMContext, date_hint: str = "", time_hint: str = "
     if date_hint:
         updates["pending_date_hint"] = date_hint
     if updates:
-        await state.update_data(**updates)
+        await state.update_data(updates)
 
 
 async def clear_pending_hints(state: FSMContext) -> None:

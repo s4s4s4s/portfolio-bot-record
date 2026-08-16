@@ -21,7 +21,6 @@ log = get_logger()
 
 async def download_voice_file(bot: object, file_id: str, dest: Path) -> None:
     """Скачивает файл через aiogram Bot.get_file + download."""
-    import asyncio
 
     # aiogram Bot.download is async but writes to disk
     file_info = await bot.get_file(file_id)  # type: ignore[attr-defined]

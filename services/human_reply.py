@@ -2,23 +2,13 @@
 
 from __future__ import annotations
 
-
-
 import json
-
 import re
-
 from typing import Any
 
-
-
 from core.logging import get_logger
-
 from services.llm_client import LLMClient, get_llm_client
-
 from services.text_guard import sanitize_bot_text
-
-
 
 log = get_logger()
 
@@ -512,9 +502,7 @@ def reply_phrase_broken(text: str, *, scene: str = "") -> bool:
         return True
     if _BROKEN_INCOMPLETE.search(text or ""):
         return True
-    if scene in _QUESTION_MARK_SCENES and text and "?" not in text and len(text) > 28:
-        return True
-    return False
+    return bool(scene in _QUESTION_MARK_SCENES and text and "?" not in text and len(text) > 28)
 
 
 def _fill_example(template: str, facts: dict[str, Any]) -> str:
@@ -531,10 +519,7 @@ def _fill_example(template: str, facts: dict[str, Any]) -> str:
     for key, val in facts.items():
         if key in ("first_name", "name") or val in (None, "", [], {}):
             continue
-        if isinstance(val, list):
-            text = ", ".join(str(x) for x in val)
-        else:
-            text = str(val)
+        text = ", ".join(str(x) for x in val) if isinstance(val, list) else str(val)
         out = out.replace("{" + key + "}", text)
     out = re.sub(r"\{(\w+)\}", "", out)
     return re.sub(r"\s+", " ", out).strip(" ,—")

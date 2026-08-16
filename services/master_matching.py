@@ -42,10 +42,7 @@ def master_matches_hint(master_name: str, hint: str) -> bool:
 
     if s.startswith("дмитр") and re.match(r"^ди[мма-яё]*", h):
         return True
-    if s.startswith("анн") and re.match(r"^ан[ньюяе]*", h):
-        return True
-
-    return False
+    return bool(s.startswith("анн") and re.match(r"^ан[ньюяе]*", h))
 
 
 def extract_master_hints(text: str) -> list[str]:
@@ -106,6 +103,4 @@ def master_matches_text(master_name: str, text: str) -> bool:
     stem = master_stem(master_name)
     if len(stem) >= 4 and stem.lower()[:4] in text.lower():
         return True
-    if stem.endswith("ий") and len(stem) > 3 and stem.lower()[:-2] in text.lower():
-        return True
-    return False
+    return bool(stem.endswith("ий") and len(stem) > 3 and stem.lower()[:-2] in text.lower())

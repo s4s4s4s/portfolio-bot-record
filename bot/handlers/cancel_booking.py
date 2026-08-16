@@ -19,6 +19,7 @@ from bot.states import BookingStates, CancelStates
 from db.repositories import BookingRepo, ClientRepo
 from services.booking_cancel import (
     ActiveBookingView,
+    CancelResolve,
     booking_views_from_models,
     looks_like_abort_cancel_pick,
     looks_like_cancel_all_confirm,
@@ -31,7 +32,6 @@ from services.persona import (
     booking_cancelled_detail,
     cancel_all_confirm_prompt,
     cancel_all_done,
-    cancel_booking_not_found_hint,
     cancel_which_booking_prompt,
     fmt_booking_card,
     leave_bookings_message,
@@ -119,7 +119,7 @@ async def _apply_cancel_pick_result(
     *,
     client_id: int,
     views: list[ActiveBookingView],
-    resolved,
+    resolved: CancelResolve,
 ) -> None:
     if resolved.kind == "one" and resolved.booking_id is not None:
         view = next((v for v in views if v.booking_id == resolved.booking_id), None)

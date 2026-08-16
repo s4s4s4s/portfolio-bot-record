@@ -2,28 +2,15 @@
 
 from __future__ import annotations
 
-
-
 import pytest
 
-
-
 from services.booking_fsm_text import (
-
     looks_like_later_time_request,
-
     looks_like_waitlist_request,
-
     parse_min_time_hint,
-
     safe_client_first_name,
-
 )
-
 from services.persona import service_choice_prompt
-
-
-
 
 
 def test_safe_name_blocks_vulgar() -> None:

@@ -170,9 +170,7 @@ def _when_matches_text(when_label: str, text: str, *, slot_on: date | None = Non
         if slot_hour is not None and slot_hour in hinted_hours:
             return True
     m = re.search(r"(\d{1,2})[.:](\d{2})", text)
-    if m and f"{int(m.group(1)):02d}.{m.group(2)}" == date_part:
-        return True
-    return False
+    return bool(m and f"{int(m.group(1)):02d}.{m.group(2)}" == date_part)
 
 
 def _view_hour(view: ActiveBookingView) -> int | None:
@@ -331,9 +329,7 @@ def looks_like_cancel_intent(text: str, *, in_cancel_fsm: bool = False) -> bool:
 
     if looks_like_change_mind(text) or looks_like_cancel_all(text):
         return True
-    if _has_cancel_word(text):
-        return True
-    return False
+    return bool(_has_cancel_word(text))
 
 
 def looks_like_service_booking_escape(text: str, service_names: list[str]) -> bool:

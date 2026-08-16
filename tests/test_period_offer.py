@@ -1,7 +1,7 @@
 """Тесты «завтра вечером» — быстрый выбор мастера."""
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -58,7 +58,7 @@ def test_slot_in_period_evening() -> None:
 
 @pytest.mark.asyncio
 async def test_collect_period_offers(session_with_seed) -> None:
-    from db.repositories import MasterRepo, ServiceRepo, SlotRepo
+    from db.repositories import ServiceRepo
     from services.period_offer import collect_period_offers
 
     session = session_with_seed

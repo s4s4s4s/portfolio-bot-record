@@ -2,28 +2,15 @@
 
 from __future__ import annotations
 
-
-
 import pytest
 
-
-
 from services.persona import (
-
     booking_created,
-
     name_prompt,
-
     welcome_with_catalog,
-
 )
-
 from services.phone import PHONE_HINT
-
 from services.text_guard import sanitize_bot_text
-
-
-
 
 
 @pytest.mark.asyncio

@@ -29,6 +29,7 @@ def test_v_sb_abbreviation() -> None:
     date_hint, _ = extract_date_time("стрижка в сб")
     assert date_hint
     from datetime import date
+
     from services.salon_time import salon_today
 
     parsed = date.fromisoformat(date_hint)

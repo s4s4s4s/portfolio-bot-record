@@ -2,16 +2,9 @@
 
 from __future__ import annotations
 
-
-
 import pytest
 
-
-
 from services.persona import faq_answer, looks_like_faq_request
-
-
-
 
 
 def test_faq_pets_question() -> None:

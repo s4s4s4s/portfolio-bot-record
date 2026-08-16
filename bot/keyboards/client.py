@@ -1,7 +1,7 @@
 """Inline-клавиатуры клиента."""
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 

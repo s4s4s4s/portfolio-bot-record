@@ -1,9 +1,8 @@
 """Помощники для callback: ответ даже если FSM сброшен или message недоступен."""
 from __future__ import annotations
 
-from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 
 async def callback_chat_id(call: CallbackQuery) -> int | None:
@@ -27,10 +26,12 @@ async def send_via_callback(
     call: CallbackQuery,
     text: str,
     *,
-    reply_markup=None,
+    reply_markup: InlineKeyboardMarkup | None = None,
     prefer_edit: bool = False,
 ) -> None:
-    bot: Bot = call.bot
+    bot = call.bot
+    if bot is None:
+        return
     chat_id = await callback_chat_id(call)
     if chat_id is None:
         return

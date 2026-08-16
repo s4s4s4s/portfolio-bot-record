@@ -22,7 +22,7 @@ if _env_file is None:
     if _cwd_env.is_file():
         _env_file = str(_cwd_env)
 
-_settings_config_kwargs: dict = {
+_settings_config_kwargs: SettingsConfigDict = {
     "env_file_encoding": "utf-8",
     "extra": "ignore",
     "case_sensitive": False,
@@ -34,7 +34,7 @@ if _env_file is not None:
 class Settings(BaseSettings):
     """Все ENV-переменные шаблона. См. .env.example."""
 
-    model_config = SettingsConfigDict(**_settings_config_kwargs)
+    model_config = _settings_config_kwargs
 
     # ── Telegram ───────────────────────────────────────────────────
     bot_token: str = Field(default="", validation_alias="BOT_TOKEN")

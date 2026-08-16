@@ -16,7 +16,7 @@ import signal
 import sys
 import time
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -29,6 +29,9 @@ from bot.middlewares import DBSessionMiddleware, ObservabilityMiddleware, UsageL
 from core.config import get_settings
 from core.logging import configure_logging, get_logger
 from db.session import init_db
+
+if TYPE_CHECKING:
+    from loguru import Logger
 
 _LOCK_FILE = Path(__file__).with_suffix(".pid")
 _TEMPLATE_ROOT = Path(__file__).resolve().parents[1]
@@ -55,7 +58,9 @@ def _acquire_lock() -> bool:
             old_pid = int(_LOCK_FILE.read_text(encoding="utf-8").strip())
             # Windows-compatible process check
             try:
-                import psutil
+                # Optional dependency (not in requirements.txt) — falls back to
+                # `tasklist` below when it isn't installed; no stubs published either way.
+                import psutil  # type: ignore[import-untyped]
                 if psutil.pid_exists(old_pid):
                     return False
             except ImportError:
@@ -80,7 +85,7 @@ def _release_lock() -> None:
         pass
 
 
-async def _heartbeat_loop(interval_sec: int, log) -> None:
+async def _heartbeat_loop(interval_sec: int, log: Logger) -> None:
     _HEARTBEAT_FILE.parent.mkdir(parents=True, exist_ok=True)
     while True:
         payload = {
@@ -95,7 +100,7 @@ async def _heartbeat_loop(interval_sec: int, log) -> None:
         await asyncio.sleep(interval_sec)
 
 
-def _register_error_handler(dp: Dispatcher, log) -> None:
+def _register_error_handler(dp: Dispatcher, log: Logger) -> None:
     @dp.errors()
     async def _on_error(event: ErrorEvent) -> bool:
         update_id = event.update.update_id if event.update else None

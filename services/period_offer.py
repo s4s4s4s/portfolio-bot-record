@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Literal
 
 from aiogram.fsm.context import FSMContext
@@ -11,9 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards.client import masters_kb
 from bot.states import BookingStates
-from db.models import Master, Slot
+from db.models import Master, Service, Slot
 from db.repositories import MasterRepo, SlotRepo
-from services.copy_variants import master_dative
+from services.llm_client import LLMClient
 from services.persona import booking_short_line
 from services.salon_time import salon_today
 
@@ -114,7 +114,7 @@ async def say_period_master_offer(
     period: PeriodKind,
     offers: list[tuple[Master, Slot]],
     *,
-    llm=None,
+    llm: LLMClient | None = None,
 ) -> str:
     from services import human_reply
 
@@ -170,7 +170,7 @@ async def try_start_period_master_shortcut(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    service,
+    service: Service,
     target: date,
     period: PeriodKind,
 ) -> bool:
